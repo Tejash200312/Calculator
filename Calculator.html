@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
+
+        .calculator {
+            width: 300px;
+            background-color: #2c3e50;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .display {
+            background-color: #34495e;
+            color: white;
+            padding: 20px;
+            text-align: right;
+            font-size: 1.8rem;
+            height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .previous-operand {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            height: 20px;
+            overflow: hidden;
+        }
+
+        .current-operand {
+            font-size: 1.8rem;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+        }
+
+        button {
+            border: none;
+            outline: none;
+            padding: 20px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            background-color: #ecf0f1;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #bdc3c7;
+        }
+
+        button.operator {
+            background-color: #3498db;
+            color: white;
+        }
+
+        button.operator:hover {
+            background-color: #2980b9;
+        }
+
+        button.equals {
+            background-color: #e74c3c;
+            color: white;
+            grid-column: span 2;
+        }
+
+        button.equals:hover {
+            background-color: #c0392b;
+        }
+
+        button.clear {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        button.clear:hover {
+            background-color: #d35400;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">
+            <div class="previous-operand" id="previous-operand"></div>
+            <div class="current-operand" id="current-operand">0</div>
+        </div>
+        <div class="buttons">
+            <button class="clear" onclick="clearAll()">AC</button>
+            <button onclick="deleteLastChar()">DEL</button>
+            <button class="operator" onclick="appendOperator('/')">/</button>
+            <button class="operator" onclick="appendOperator('*')">×</button>
+            <button onclick="appendNumber('7')">7</button>
+            <button onclick="appendNumber('8')">8</button>
+            <button onclick="appendNumber('9')">9</button>
+            <button class="operator" onclick="appendOperator('-')">-</button>
+            <button onclick="appendNumber('4')">4</button>
+            <button onclick="appendNumber('5')">5</button>
+            <button onclick="appendNumber('6')">6</button>
+            <button class="operator" onclick="appendOperator('+')">+</button>
+            <button onclick="appendNumber('1')">1</button>
+            <button onclick="appendNumber('2')">2</button>
+            <button onclick="appendNumber('3')">3</button>
+            <button onclick="appendNumber('0')">0</button>
+            <button onclick="appendDecimal()">.</button>
+            <button class="equals" onclick="calculate()">=</button>
+        </div>
+    </div>
+
+    <script>
+        let currentOperand = '0';
+        let previousOperand = '';
+        let operation = undefined;
+        let resetScreen = false;
+
+        const currentOperandElement = document.getElementById('current-operand');
+        const previousOperandElement = document.getElementById('previous-operand');
+
+        function appendNumber(number) {
+            if (currentOperand === '0' || resetScreen) {
+                currentOperand = number;
+                resetScreen = false;
+            } else {
+                currentOperand += number;
+            }
+            updateDisplay();
+        }
+
+        function appendDecimal() {
+            if (resetScreen) {
+                currentOperand = '0.';
+                resetScreen = false;
+                return;
+            }
+            if (currentOperand.includes('.')) return;
+            currentOperand += '.';
+            updateDisplay();
+        }
+
+        function appendOperator(op) {
+            if (currentOperand === '') return;
+            if (previousOperand !== '') {
+                calculate();
+            }
+            operation = op;
+            previousOperand = currentOperand;
+            currentOperand = '';
+            updateDisplay();
+        }
+
+        function calculate() {
+            let computation;
+            const prev = parseFloat(previousOperand);
+            const current = parseFloat(currentOperand);
+            if (isNaN(prev) || isNaN(current)) return;
+
+            switch (operation) {
+                case '+':
+                    computation = prev + current;
+                    break;
+                case '-':
+                    computation = prev - current;
+                    break;
+                case '*':
+                    computation = prev * current;
+                    break;
+                case '/':
+                    computation = prev / current;
+                    break;
+                default:
+                    return;
+            }
+
+            currentOperand = computation.toString();
+            operation = undefined;
+            previousOperand = '';
+            resetScreen = true;
+            updateDisplay();
+        }
+
+        function clearAll() {
+            currentOperand = '0';
+            previousOperand = '';
+            operation = undefined;
+            updateDisplay();
+        }
+
+        function deleteLastChar() {
+            if (currentOperand.length === 1 || (currentOperand.length === 2 && currentOperand.startsWith('-'))) {
+                currentOperand = '0';
+            } else {
+                currentOperand = currentOperand.slice(0, -1);
+            }
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            currentOperandElement.textContent = currentOperand;
+            if (operation != null) {
+                previousOperandElement.textContent = ${previousOperand} ${operation};
+            } else {
+                previousOperandElement.textContent = previousOperand;
+            }
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') appendNumber(e.key);
+            else if (e.key === '.') appendDecimal();
+            else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
+                appendOperator(e.key);
+            }
+            else if (e.key === 'Enter' || e.key === '=') calculate();
+            else if (e.key === 'Escape') clearAll();
+            else if (e.key === 'Backspace') deleteLastChar();
+        });
+    </script>
+</body>
+</html>
